@@ -70121,6 +70121,18 @@ const HISTORY_QUESTIONS = [
                     return () => clearInterval(interval);
                 }
             }, [timerActive, mode]);
+            // Set initial revealed clues based on mode
+            useEffect(() => {
+                if (currentQuestion && mode === 'practice') {
+                    // Practice mode: show first 2 clues (hardest ones)
+                    const firstTwo = [0, 1];
+                    setRevealedClues(firstTwo);
+                } else if (currentQuestion) {
+                    // Other modes: start with first clue
+                    setRevealedClues([0]);
+                }
+            }, [currentQuestionIndex, mode]);
+
 
             const currentQuestion = questions[currentQuestionIndex];
 
@@ -70257,7 +70269,16 @@ const HISTORY_QUESTIONS = [
             const handleNextQuestion = () => {
                 if (currentQuestionIndex < questions.length - 1) {
                     setCurrentQuestionIndex(currentQuestionIndex + 1);
-                    setRevealedClues([0]);
+                    // Set revealed clues based on mode
+                    const nextQuestion = questions[currentQuestionIndex + 1];
+                    if (mode === 'practice' && nextQuestion) {
+                        // Practice mode: show last 2 clues
+                        const lastTwo = [nextQuestion.clues.length - 2, nextQuestion.clues.length - 1];
+                        setRevealedClues(lastTwo);
+                    } else {
+                        // Other modes: start with first clue
+                        setRevealedClues([0]);
+                    }
                     setUserAnswer('');
                     setShowFeedback(false);
                     setBuzzedIn(false);
