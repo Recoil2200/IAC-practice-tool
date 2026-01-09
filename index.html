@@ -70124,9 +70124,9 @@ const HISTORY_QUESTIONS = [
             // Set initial revealed clues based on mode
             useEffect(() => {
                 if (currentQuestion && mode === 'practice') {
-                    // Practice mode: show first 2 clues (hardest ones)
-                    const firstTwo = [0, 1];
-                    setRevealedClues(firstTwo);
+                    // Practice mode: show first 3 clues (hardest ones)
+                    const firstThree = [0, 1, 2];
+                    setRevealedClues(firstThree);
                 } else if (currentQuestion) {
                     // Other modes: start with first clue
                     setRevealedClues([0]);
