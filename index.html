@@ -69543,7 +69543,136 @@ const HISTORY_QUESTIONS = [
         ];
 
         // Main App Component
+
+        // ========== ACCESS CODE SYSTEM ==========
+        const ACCESS_CODES = {
+            'Jayden@2026!': { name: 'Jayden', id: 'jayden' },
+            'Arda!2026@': { name: 'Arda', id: 'arda' }
+        };
+        
+        function LoginScreen({ onLogin }) {
+            const [code, setCode] = useState('');
+            const [error, setError] = useState('');
+            const [showCode, setShowCode] = useState(false);
+            
+            const handleSubmit = () => {
+                const user = ACCESS_CODES[code];
+                if (user) {
+                    localStorage.setItem('iac_current_user', JSON.stringify(user));
+                    onLogin(user);
+                } else {
+                    setError('Invalid access code. Please try again.');
+                    setCode('');
+                }
+            };
+            
+            return (
+                <div style={{
+                    minHeight: '100vh',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '20px',
+                        padding: '40px',
+                        maxWidth: '400px',
+                        width: '100%',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                        textAlign: 'center'
+                    }}>
+                        <div style={{ fontSize: '60px', marginBottom: '20px' }}>🔐</div>
+                        <h1 style={{ color: '#667eea', marginBottom: '10px', fontSize: '28px' }}>
+                            IAC Study Tool
+                        </h1>
+                        <p style={{ color: '#666', marginBottom: '30px' }}>
+                            Enter your access code to continue
+                        </p>
+                        <div style={{ position: 'relative', marginBottom: '20px' }}>
+                            <input
+                                type={showCode ? 'text' : 'password'}
+                                value={code}
+                                onChange={(e) => { setCode(e.target.value); setError(''); }}
+                                onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
+                                placeholder="Access Code"
+                                style={{
+                                    width: '100%',
+                                    padding: '15px 50px 15px 20px',
+                                    fontSize: '18px',
+                                    border: error ? '2px solid #e74c3c' : '2px solid #ddd',
+                                    borderRadius: '10px',
+                                    outline: 'none',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                            <button
+                                onClick={() => setShowCode(!showCode)}
+                                style={{
+                                    position: 'absolute',
+                                    right: '15px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '18px'
+                                }}
+                            >
+                                {showCode ? '🙈' : '👁️'}
+                            </button>
+                        </div>
+                        {error && <p style={{ color: '#e74c3c', marginBottom: '20px', fontSize: '14px' }}>{error}</p>}
+                        <button
+                            onClick={handleSubmit}
+                            style={{
+                                width: '100%',
+                                padding: '15px',
+                                fontSize: '18px',
+                                fontWeight: 'bold',
+                                color: 'white',
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                border: 'none',
+                                borderRadius: '10px',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+                            }}
+                        >
+                            Start Practicing
+                        </button>
+                        <p style={{ marginTop: '30px', color: '#999', fontSize: '12px' }}>
+                            🏆 Houston Regional & US Nationals 2026
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+        
+        function getStoredUser() {
+            const stored = localStorage.getItem('iac_current_user');
+            if (stored) {
+                try { return JSON.parse(stored); } catch { return null; }
+            }
+            return null;
+        }
+        // ========== END ACCESS CODE SYSTEM ==========
+
         function IACStudyTool() {
+
+        // User Authentication
+        const [currentUser, setCurrentUser] = useState(getStoredUser());
+        
+        const handleLogout = () => {
+            localStorage.removeItem('iac_current_user');
+            setCurrentUser(null);
+        };
+        
+        // Show login if not authenticated
+        if (!currentUser) {
+            return <LoginScreen onLogin={setCurrentUser} />;
+        }
 
         // Celebration System
         const [soundMuted, setSoundMuted] = useState(false);
@@ -69631,7 +69760,7 @@ const HISTORY_QUESTIONS = [
             const [selectedSubject, setSelectedSubject] = useState(null);
             const [selectedMode, setSelectedMode] = useState(null);
             const [userProgress, setUserProgress] = useState(() => {
-                const saved = localStorage.getItem('iacProgress');
+                const saved = localStorage.getItem('iacProgress_' + currentUser.id);
                 return saved ? JSON.parse(saved) : {
                     totalPoints: 0,
                     totalQuestions: 0,
@@ -69647,7 +69776,7 @@ const HISTORY_QUESTIONS = [
             });
 
             useEffect(() => {
-                localStorage.setItem('iacProgress', JSON.stringify(userProgress));
+                localStorage.setItem('iacProgress_' + currentUser.id, JSON.stringify(userProgress));
             }, [userProgress]);
             
             // Retroactively check for badges on app load
@@ -69907,8 +70036,28 @@ const HISTORY_QUESTIONS = [
             return (
                 <>
                     <header className="app-header">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
+                            <span style={{fontSize: '14px', color: '#667eea', fontWeight: 'bold'}}>
+                                👋 Welcome, {currentUser.name}!
+                            </span>
+                            <button 
+                                onClick={handleLogout}
+                                style={{
+                                    padding: '8px 16px',
+                                    fontSize: '12px',
+                                    background: 'rgba(255,255,255,0.9)',
+                                    border: 'none',
+                                    borderRadius: '20px',
+                                    cursor: 'pointer',
+                                    color: '#666',
+                                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                                }}
+                            >
+                                🚪 Logout
+                            </button>
+                        </div>
                         <h1 className="app-title">IAC Study Tool</h1>
-                        <p className="app-subtitle">Houston Regional • January 31, 2026</p>
+                        <p className="app-subtitle">Houston Regional & US Nationals 2026</p>
                     </header>
 
                     <div className="level-card">
